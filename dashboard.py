@@ -5,8 +5,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -24,8 +22,8 @@ st.set_page_config(
 # ─────────────────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    annual   = pd.read_csv('data/processed/annual_trends.csv')
-    cat_ann  = pd.read_csv('data/processed/category_annual.csv')
+    annual  = pd.read_csv('data/processed/annual_trends.csv')
+    cat_ann = pd.read_csv('data/processed/category_annual.csv')
     return annual, cat_ann
 
 annual, cat_annual = load_data()
@@ -48,7 +46,7 @@ year_range = st.sidebar.slider(
     value=(2007, 2023)
 )
 
-all_cats = sorted(papers['category_name'].unique().tolist())
+all_cats = sorted(cat_annual['category_name'].unique().tolist())
 selected_cats = st.sidebar.multiselect(
     "Select Categories",
     options=all_cats,
@@ -59,11 +57,6 @@ selected_cats = st.sidebar.multiselect(
 annual_filtered = annual[
     (annual['year'] >= year_range[0]) &
     (annual['year'] <= year_range[1])
-]
-papers_filtered = papers[
-    (papers['year'] >= year_range[0]) &
-    (papers['year'] <= year_range[1]) &
-    (papers['category_name'].isin(selected_cats))
 ]
 cat_filtered = cat_annual[
     (cat_annual['year'] >= year_range[0]) &
@@ -103,7 +96,6 @@ fig1.add_trace(go.Scatter(
     hovertemplate='Year: %{x}<br>Papers: %{y:,}<extra></extra>'
 ))
 
-# Key milestone annotations
 milestones = {2012: 'AlexNet', 2017: 'Transformers', 2020: 'GPT-3', 2022: 'ChatGPT'}
 for year, label in milestones.items():
     if year_range[0] <= year <= year_range[1]:
@@ -161,13 +153,8 @@ st.divider()
 # ─────────────────────────────────────────────────────────────────────────────
 st.subheader("🤝 Collaboration Trends Over Time")
 
-collab = papers_filtered.groupby('year').agg(
-    avg_authors=('author_count', 'mean'),
-    collab_pct=('is_collaborative', 'mean')
-).reset_index()
-collab['collab_pct'] = collab['collab_pct'] * 100
-
 col_c, col_d = st.columns(2)
+
 with col_c:
     fig4 = px.line(annual_filtered, x='year', y='avg_authors',
                    title='Average Authors per Paper',
