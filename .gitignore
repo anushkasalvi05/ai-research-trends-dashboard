@@ -1,5 +1,5 @@
 data/raw/
-data/processed/
+data/processed/papers_clean.csv
 .venv/
 __pycache__/
 *.pyc
