@@ -28,7 +28,7 @@ def load_data():
     cat_ann  = pd.read_csv('data/processed/category_annual.csv')
     return annual, cat_ann, papers
 
-annual, cat_annual, papers = load_data()
+annual, cat_annual = load_data()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HEADER
