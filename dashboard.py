@@ -26,7 +26,7 @@ st.set_page_config(
 def load_data():
     annual   = pd.read_csv('data/processed/annual_trends.csv')
     cat_ann  = pd.read_csv('data/processed/category_annual.csv')
-    return annual, cat_ann, papers
+    return annual, cat_ann
 
 annual, cat_annual = load_data()
 
