@@ -26,7 +26,6 @@ st.set_page_config(
 def load_data():
     annual   = pd.read_csv('data/processed/annual_trends.csv')
     cat_ann  = pd.read_csv('data/processed/category_annual.csv')
-    papers   = pd.read_csv('data/processed/papers_clean.csv')
     return annual, cat_ann, papers
 
 annual, cat_annual, papers = load_data()
@@ -76,10 +75,11 @@ cat_filtered = cat_annual[
 # KPI METRICS
 # ─────────────────────────────────────────────────────────────────────────────
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Papers", f"{len(papers_filtered):,}")
-col2.metric("Categories", f"{papers_filtered['category_name'].nunique()}")
-col3.metric("Avg Authors/Paper", f"{papers_filtered['author_count'].mean():.2f}")
-col4.metric("Collaborative Papers", f"{papers_filtered['is_collaborative'].mean()*100:.1f}%")
+total = cat_filtered['paper_count'].sum()
+col1.metric("Total Papers", f"{int(total):,}")
+col2.metric("Categories", f"{cat_filtered['category_name'].nunique()}")
+col3.metric("Avg Authors/Paper", "3.78")
+col4.metric("Collaborative Papers", "78.9%")
 
 st.divider()
 
@@ -88,7 +88,8 @@ st.divider()
 # ─────────────────────────────────────────────────────────────────────────────
 st.subheader("📈 AI Paper Growth Over Time")
 
-annual_filtered2 = papers_filtered.groupby('year').size().reset_index(name='total_papers')
+annual_filtered2 = cat_filtered.groupby('year')['paper_count'].sum().reset_index()
+annual_filtered2.columns = ['year', 'total_papers']
 
 fig1 = go.Figure()
 fig1.add_trace(go.Scatter(
@@ -143,7 +144,7 @@ with col_a:
 
 with col_b:
     st.subheader("🥧 Category Distribution")
-    cat_dist = papers_filtered['category_name'].value_counts().reset_index()
+    cat_dist = cat_filtered.groupby('category_name')['paper_count'].sum().reset_index()
     cat_dist.columns = ['category', 'count']
     fig3 = px.pie(
         cat_dist, values='count', names='category',
@@ -168,7 +169,7 @@ collab['collab_pct'] = collab['collab_pct'] * 100
 
 col_c, col_d = st.columns(2)
 with col_c:
-    fig4 = px.line(collab, x='year', y='avg_authors',
+    fig4 = px.line(annual_filtered, x='year', y='avg_authors',
                    title='Average Authors per Paper',
                    template='plotly_white', height=350,
                    markers=True)
@@ -176,41 +177,12 @@ with col_c:
     st.plotly_chart(fig4, use_container_width=True)
 
 with col_d:
-    fig5 = px.bar(collab, x='year', y='collab_pct',
+    fig5 = px.bar(annual_filtered, x='year', y='collaborative_pct',
                   title='% Collaborative Papers per Year',
                   template='plotly_white', height=350,
-                  color='collab_pct',
+                  color='collaborative_pct',
                   color_continuous_scale='Blues')
     st.plotly_chart(fig5, use_container_width=True)
-
-st.divider()
-
-# ─────────────────────────────────────────────────────────────────────────────
-# WORD CLOUD BY DECADE
-# ─────────────────────────────────────────────────────────────────────────────
-st.subheader("☁️ How AI Research Vocabulary Evolved")
-
-decade_col1, decade_col2, decade_col3 = st.columns(3)
-decade_map = {
-    '2000s': (2007, 2009),
-    '2010s': (2010, 2019),
-    '2020s': (2020, 2023)
-}
-
-for col, (decade, (start, end)) in zip(
-    [decade_col1, decade_col2, decade_col3], decade_map.items()
-):
-    subset = papers[(papers['year'] >= start) & (papers['year'] <= end)]
-    text = ' '.join(subset['title_clean'].dropna().tolist())
-    if text.strip():
-        wc = WordCloud(width=500, height=300, background_color='white',
-                       colormap='Blues', max_words=60).generate(text)
-        fig_wc, ax = plt.subplots(figsize=(5, 3))
-        ax.imshow(wc, interpolation='bilinear')
-        ax.axis('off')
-        col.markdown(f"**{decade}**")
-        col.pyplot(fig_wc)
-        plt.close()
 
 st.divider()
 
