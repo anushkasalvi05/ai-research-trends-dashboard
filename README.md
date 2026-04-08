@@ -48,7 +48,7 @@ Key findings:
 
 ## Live Dashboard
 
-🔗 [View the live dashboard here](https://your-streamlit-url.streamlit.app)
+🔗 [View the live dashboard here](https://ai-research-trends.streamlit.app/)
 
 ---
 
